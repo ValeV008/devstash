@@ -1,32 +1,28 @@
-"use client";
-
 import Link from "next/link";
 import {
-  Clock,
   Code,
+  Database,
   File,
-  Folder,
+  FolderOpen,
+  Heart,
   Image as ImageIcon,
   Link as LinkIcon,
-  Menu,
-  PanelLeftClose,
-  PanelLeftOpen,
-  Plus,
-  Search,
+  MoreHorizontal,
+  Pin,
   Sparkles,
   Star,
   StickyNote,
   Terminal,
-  X,
   type LucideIcon,
 } from "lucide-react";
-import { type ReactNode, useState } from "react";
+import { type ReactNode } from "react";
 
+import { DashboardFrame } from "@/components/dashboard/DashboardFrame";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   mockDashboardData,
   type MockCollection,
+  type MockItem,
   type MockItemType,
   type MockItemTypeId,
 } from "@/lib/mock-data";
@@ -42,360 +38,307 @@ const itemTypeIcons: Record<string, LucideIcon> = {
   Link: LinkIcon,
 };
 
-const itemTypeAccentClasses: Record<MockItemTypeId, string> = {
-  snippet: "bg-blue-500",
-  prompt: "bg-violet-500",
-  command: "bg-orange-500",
-  note: "bg-yellow-400",
-  file: "bg-zinc-500",
-  image: "bg-pink-500",
-  link: "bg-emerald-500",
+const itemTypeTextClasses: Record<MockItemTypeId, string> = {
+  snippet: "text-blue-400",
+  prompt: "text-violet-400",
+  command: "text-orange-400",
+  note: "text-yellow-300",
+  file: "text-zinc-400",
+  image: "text-pink-400",
+  link: "text-emerald-400",
 };
 
-const itemTypeHoverClasses: Record<MockItemTypeId, string> = {
-  snippet: "hover:border-blue-500/50 hover:bg-blue-500/10",
-  prompt: "hover:border-violet-500/50 hover:bg-violet-500/10",
-  command: "hover:border-orange-500/50 hover:bg-orange-500/10",
-  note: "hover:border-yellow-400/50 hover:bg-yellow-400/10",
-  file: "hover:border-zinc-500/50 hover:bg-zinc-500/10",
-  image: "hover:border-pink-500/50 hover:bg-pink-500/10",
-  link: "hover:border-emerald-500/50 hover:bg-emerald-500/10",
+const itemTypeBorderClasses: Record<MockItemTypeId, string> = {
+  snippet: "border-l-blue-500",
+  prompt: "border-l-violet-500",
+  command: "border-l-orange-500",
+  note: "border-l-yellow-400",
+  file: "border-l-zinc-500",
+  image: "border-l-pink-500",
+  link: "border-l-emerald-500",
 };
 
 export function DashboardShell() {
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-
   return (
-    <main className="min-h-screen bg-background text-foreground">
-      <header className="flex h-16 items-center gap-3 border-b bg-card px-4 sm:px-6">
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className="lg:hidden"
-          aria-label="Open sidebar"
-          aria-controls="dashboard-mobile-sidebar"
-          aria-expanded={isMobileSidebarOpen}
-          onClick={() => setIsMobileSidebarOpen(true)}
-        >
-          <Menu />
-        </Button>
-
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className="hidden lg:inline-flex"
-          aria-label={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-          aria-controls="dashboard-desktop-sidebar"
-          aria-expanded={!isSidebarCollapsed}
-          onClick={() => setIsSidebarCollapsed((current) => !current)}
-        >
-          {isSidebarCollapsed ? <PanelLeftOpen /> : <PanelLeftClose />}
-        </Button>
-
-        <div className="flex min-w-0 flex-1 items-center gap-3">
-          <h1 className="shrink-0 text-lg font-semibold tracking-normal">
-            DevStash
-          </h1>
-          <div className="relative hidden w-full max-w-xl sm:block">
-            <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              aria-label="Search"
-              placeholder="Search snippets, commands, prompts..."
-              className="pl-9"
-              readOnly
-            />
-          </div>
-        </div>
-
-        <Button type="button" aria-label="New item">
-          <Plus />
-          <span className="hidden sm:inline">New Item</span>
-        </Button>
-      </header>
-
-      <MobileSidebar
-        isOpen={isMobileSidebarOpen}
-        onClose={() => setIsMobileSidebarOpen(false)}
-      />
-
-      <div
-        className={cn(
-          "grid min-h-[calc(100vh-4rem)] grid-cols-1 transition-[grid-template-columns] duration-200 lg:grid-cols-[17rem_1fr]",
-          isSidebarCollapsed && "lg:grid-cols-[4.75rem_1fr]",
-        )}
-      >
-        <aside
-          id="dashboard-desktop-sidebar"
-          className="hidden min-h-0 border-r bg-card/60 lg:flex"
-        >
-          <SidebarContent collapsed={isSidebarCollapsed} />
-        </aside>
-
-        <section className="min-w-0 p-4 sm:p-6">
-          <h2 className="text-xl font-semibold">Main</h2>
-        </section>
-      </div>
-    </main>
+    <DashboardFrame>
+      <DashboardMain />
+    </DashboardFrame>
   );
 }
 
-function MobileSidebar({
-  isOpen,
-  onClose,
-}: {
-  isOpen: boolean;
-  onClose: () => void;
-}) {
-  if (!isOpen) {
-    return null;
-  }
-
-  return (
-    <div className="fixed inset-0 z-50 lg:hidden">
-      <button
-        type="button"
-        className="absolute inset-0 bg-background/80"
-        aria-label="Close sidebar"
-        onClick={onClose}
-      />
-      <aside
-        id="dashboard-mobile-sidebar"
-        className="absolute inset-y-0 left-0 flex w-[min(20rem,calc(100vw-2rem))] border-r bg-card shadow-2xl"
-      >
-        <div className="flex min-h-0 flex-1 flex-col">
-          <div className="flex h-16 items-center justify-between border-b px-4">
-            <span className="text-sm font-semibold">DevStash</span>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              aria-label="Close sidebar"
-              onClick={onClose}
-            >
-              <X />
-            </Button>
-          </div>
-          <SidebarContent collapsed={false} onLinkClick={onClose} />
-        </div>
-      </aside>
-    </div>
+function DashboardMain() {
+  const collections = [...mockDashboardData.collections].sort(
+    (first, second) =>
+      new Date(second.updatedAt).getTime() -
+      new Date(first.updatedAt).getTime(),
   );
-}
-
-function SidebarContent({
-  collapsed,
-  onLinkClick,
-}: {
-  collapsed: boolean;
-  onLinkClick?: () => void;
-}) {
-  const favoriteCollections = mockDashboardData.collections
-    .filter((collection) => collection.isFavorite)
-    .slice(0, 4);
-  const recentCollections = [...mockDashboardData.collections]
+  const pinnedItems = mockDashboardData.items
+    .filter((item) => item.isPinned)
     .sort(
       (first, second) =>
-        new Date(second.updatedAt).getTime() -
-        new Date(first.updatedAt).getTime(),
+        new Date(second.lastUsedAt).getTime() -
+        new Date(first.lastUsedAt).getTime(),
+    );
+  const recentItems = [...mockDashboardData.items]
+    .sort(
+      (first, second) =>
+        new Date(second.lastUsedAt).getTime() -
+        new Date(first.lastUsedAt).getTime(),
     )
-    .slice(0, 5);
+    .slice(0, 10);
+  const favoriteItemCount = mockDashboardData.items.filter(
+    (item) => item.isFavorite,
+  ).length;
+  const favoriteCollectionCount = mockDashboardData.collections.filter(
+    (collection) => collection.isFavorite,
+  ).length;
+
+  const stats = [
+    {
+      label: "Items",
+      value: mockDashboardData.items.length,
+      icon: Database,
+      tone: "text-blue-400",
+    },
+    {
+      label: "Collections",
+      value: mockDashboardData.collections.length,
+      icon: FolderOpen,
+      tone: "text-emerald-400",
+    },
+    {
+      label: "Favorite items",
+      value: favoriteItemCount,
+      icon: Heart,
+      tone: "text-pink-400",
+    },
+    {
+      label: "Favorite collections",
+      value: favoriteCollectionCount,
+      icon: Star,
+      tone: "text-yellow-300",
+    },
+  ];
 
   return (
-    <div
-      className={cn(
-        "flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto p-3",
-        !collapsed && "p-4",
-      )}
-    >
-      <SidebarSection
-        title="Types"
-        icon={Folder}
-        collapsed={collapsed}
-        className="gap-1.5"
-      >
-        {mockDashboardData.itemTypes.map((itemType) => (
-          <ItemTypeLink
-            key={itemType.id}
-            itemType={itemType}
-            collapsed={collapsed}
-            onClick={onLinkClick}
-          />
-        ))}
-      </SidebarSection>
+    <section className="min-w-0 overflow-x-hidden p-4 sm:p-6 lg:p-8">
+      <div className="mx-auto flex w-full max-w-7xl flex-col gap-8">
+        <div className="space-y-2">
+          <h2 className="text-3xl font-semibold tracking-normal">Dashboard</h2>
+          <p className="text-base text-muted-foreground">
+            Your developer knowledge hub
+          </p>
+        </div>
 
-      <SidebarSection title="Favorites" icon={Star} collapsed={collapsed}>
-        {favoriteCollections.map((collection) => (
-          <CollectionLink
-            key={collection.id}
-            collection={collection}
-            collapsed={collapsed}
-            onClick={onLinkClick}
-          />
-        ))}
-      </SidebarSection>
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {stats.map((stat) => (
+            <StatCard key={stat.label} {...stat} />
+          ))}
+        </div>
 
-      <SidebarSection title="Recent" icon={Clock} collapsed={collapsed}>
-        {recentCollections.map((collection) => (
-          <CollectionLink
-            key={collection.id}
-            collection={collection}
-            collapsed={collapsed}
-            onClick={onLinkClick}
-          />
-        ))}
-      </SidebarSection>
+        <DashboardSection title="Recent collections" actionLabel="View all">
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {collections.map((collection) => (
+              <CollectionCard key={collection.id} collection={collection} />
+            ))}
+          </div>
+        </DashboardSection>
 
-      <UserArea collapsed={collapsed} />
-    </div>
-  );
-}
+        <DashboardSection title="Pinned items" icon={Pin}>
+          <div className="grid gap-3">
+            {pinnedItems.map((item) => (
+              <ItemRow key={item.id} item={item} featured />
+            ))}
+          </div>
+        </DashboardSection>
 
-function SidebarSection({
-  title,
-  icon: Icon,
-  collapsed,
-  className,
-  children,
-}: {
-  title: string;
-  icon: LucideIcon;
-  collapsed: boolean;
-  className?: string;
-  children: ReactNode;
-}) {
-  return (
-    <section className="space-y-2">
-      <div
-        className={cn(
-          "flex h-5 items-center gap-2 px-2 text-xs font-semibold tracking-normal text-muted-foreground uppercase",
-          collapsed && "justify-center px-0",
-        )}
-      >
-        {collapsed ? (
-          <Icon className="size-4" aria-label={title} />
-        ) : (
-          <span>{title}</span>
-        )}
+        <DashboardSection title="Recent items">
+          <div className="grid gap-3">
+            {recentItems.map((item) => (
+              <ItemRow key={item.id} item={item} />
+            ))}
+          </div>
+        </DashboardSection>
       </div>
-      <div className={cn("flex flex-col gap-1", className)}>{children}</div>
     </section>
   );
 }
 
-function ItemTypeLink({
-  itemType,
-  collapsed,
-  onClick,
+function StatCard({
+  label,
+  value,
+  icon: Icon,
+  tone,
 }: {
-  itemType: MockItemType;
-  collapsed: boolean;
-  onClick?: () => void;
+  label: string;
+  value: number;
+  icon: LucideIcon;
+  tone: string;
 }) {
+  return (
+    <div className="rounded-lg border bg-card/70 p-4">
+      <div className="flex items-center justify-between gap-4">
+        <div className="min-w-0">
+          <p className="truncate text-sm text-muted-foreground">{label}</p>
+          <p className="mt-2 text-2xl font-semibold tracking-normal">{value}</p>
+        </div>
+        <div className="flex size-10 shrink-0 items-center justify-center rounded-md bg-secondary">
+          <Icon className={cn("size-5", tone)} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DashboardSection({
+  title,
+  icon: Icon,
+  actionLabel,
+  children,
+}: {
+  title: string;
+  icon?: LucideIcon;
+  actionLabel?: string;
+  children: ReactNode;
+}) {
+  return (
+    <section className="space-y-4">
+      <div className="flex min-h-9 items-center justify-between gap-4">
+        <div className="flex min-w-0 items-center gap-2">
+          {Icon && <Icon className="size-5 shrink-0 text-muted-foreground" />}
+          <h3 className="truncate text-xl font-semibold tracking-normal">
+            {title}
+          </h3>
+        </div>
+        {actionLabel && (
+          <Button type="button" variant="ghost" size="sm">
+            {actionLabel}
+          </Button>
+        )}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+function CollectionCard({ collection }: { collection: MockCollection }) {
+  const linkedTypes = collection.itemTypeIds
+    .map((typeId) =>
+      mockDashboardData.itemTypes.find((itemType) => itemType.id === typeId),
+    )
+    .filter((itemType): itemType is MockItemType => Boolean(itemType));
+
+  return (
+    <Link
+      href={`/collections/${collection.id}`}
+      className={cn(
+        "group flex min-h-44 flex-col rounded-lg border border-l-4 bg-card/70 p-5 transition-colors",
+        "hover:border-r-border hover:border-y-border hover:bg-accent/40 focus-visible:ring-ring/50 focus-visible:ring-[3px] focus-visible:outline-none",
+        itemTypeBorderClasses[collection.defaultTypeId],
+      )}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2">
+            <h4 className="truncate text-base font-semibold">
+              {collection.name}
+            </h4>
+            {collection.isFavorite && (
+              <Star className="size-4 shrink-0 fill-yellow-400 text-yellow-400" />
+            )}
+          </div>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {collection.itemCount} items
+          </p>
+        </div>
+        <MoreHorizontal className="size-5 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
+      </div>
+      <p className="mt-5 line-clamp-2 text-sm text-muted-foreground">
+        {collection.description}
+      </p>
+      <div className="mt-auto flex flex-wrap gap-2 pt-5">
+        {linkedTypes.map((itemType) => {
+          const Icon = itemTypeIcons[itemType.icon] ?? File;
+
+          return (
+            <Icon
+              key={itemType.id}
+              className={cn("size-4", itemTypeTextClasses[itemType.id])}
+              aria-label={itemType.label}
+            />
+          );
+        })}
+      </div>
+    </Link>
+  );
+}
+
+function ItemRow({
+  item,
+  featured = false,
+}: {
+  item: MockItem;
+  featured?: boolean;
+}) {
+  const itemType = getItemType(item.itemTypeId);
   const Icon = itemTypeIcons[itemType.icon] ?? File;
 
   return (
     <Link
       href={itemType.route}
-      title={collapsed ? itemType.label : undefined}
-      onClick={onClick}
       className={cn(
-        "flex h-10 items-center gap-3 rounded-md border border-transparent px-2 text-sm text-muted-foreground transition-colors",
-        "hover:text-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] focus-visible:outline-none",
-        itemTypeHoverClasses[itemType.id],
-        collapsed && "justify-center px-0",
+        "grid gap-4 rounded-lg border border-l-4 bg-card/70 p-4 transition-colors sm:grid-cols-[1fr_auto]",
+        "hover:border-r-border hover:border-y-border hover:bg-accent/40 focus-visible:ring-ring/50 focus-visible:ring-[3px] focus-visible:outline-none",
+        itemTypeBorderClasses[item.itemTypeId],
+        featured && "min-h-28",
       )}
     >
-      <span
-        className={cn(
-          "flex size-7 shrink-0 items-center justify-center rounded-md text-white",
-          itemTypeAccentClasses[itemType.id],
-        )}
-      >
-        <Icon className="size-4" />
-      </span>
-      {!collapsed && (
-        <>
-          <span className="min-w-0 flex-1 truncate">{itemType.label}</span>
-          <span className="text-xs text-muted-foreground">
-            {itemType.itemCount}
-          </span>
-        </>
-      )}
-    </Link>
-  );
-}
-
-function CollectionLink({
-  collection,
-  collapsed,
-  onClick,
-}: {
-  collection: MockCollection;
-  collapsed: boolean;
-  onClick?: () => void;
-}) {
-  return (
-    <Link
-      href={`/collections/${collection.id}`}
-      title={collapsed ? collection.name : undefined}
-      onClick={onClick}
-      className={cn(
-        "flex h-9 items-center gap-3 rounded-md px-2 text-sm text-muted-foreground transition-colors",
-        "hover:bg-accent hover:text-accent-foreground focus-visible:ring-ring/50 focus-visible:ring-[3px] focus-visible:outline-none",
-        collapsed && "justify-center px-0",
-      )}
-    >
-      <span
-        className={cn(
-          "size-2.5 shrink-0 rounded-full",
-          itemTypeAccentClasses[collection.defaultTypeId],
-          collapsed && "size-3",
-        )}
-      />
-      {!collapsed && (
-        <>
-          <span className="min-w-0 flex-1 truncate">{collection.name}</span>
-          <span className="text-xs text-muted-foreground">
-            {collection.itemCount}
-          </span>
-        </>
-      )}
-    </Link>
-  );
-}
-
-function UserArea({ collapsed }: { collapsed: boolean }) {
-  const user = mockDashboardData.currentUser;
-  const initials = user.name
-    .split(" ")
-    .map((part) => part[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
-
-  return (
-    <div className="mt-auto border-t pt-3">
-      <div
-        className={cn(
-          "flex items-center gap-3 rounded-md px-2 py-2",
-          collapsed && "justify-center px-0",
-        )}
-      >
-        <div className="flex size-9 shrink-0 items-center justify-center rounded-md bg-secondary text-sm font-semibold text-secondary-foreground">
-          {initials}
+      <div className="flex min-w-0 gap-4">
+        <div className="flex size-11 shrink-0 items-center justify-center rounded-md bg-secondary">
+          <Icon className={cn("size-5", itemTypeTextClasses[item.itemTypeId])} />
         </div>
-        {!collapsed && (
-          <div className="min-w-0">
-            <p className="truncate text-sm font-medium">{user.name}</p>
-            <p className="truncate text-xs text-muted-foreground">
-              {user.email}
-            </p>
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <h4 className="truncate text-base font-semibold">{item.title}</h4>
+            {item.isPinned && (
+              <Pin className="size-4 shrink-0 fill-muted-foreground text-muted-foreground" />
+            )}
+            {item.isFavorite && (
+              <Star className="size-4 shrink-0 fill-yellow-400 text-yellow-400" />
+            )}
           </div>
-        )}
+          <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
+            {item.description}
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {item.tags.slice(0, 4).map((tag) => (
+              <span
+                key={tag}
+                className="rounded-md bg-secondary px-2 py-1 text-xs text-secondary-foreground"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        </div>
       </div>
-    </div>
+      <time className="text-sm whitespace-nowrap text-muted-foreground sm:pt-4">
+        {formatShortDate(item.lastUsedAt)}
+      </time>
+    </Link>
   );
+}
+
+function getItemType(itemTypeId: MockItemTypeId) {
+  return (
+    mockDashboardData.itemTypes.find((itemType) => itemType.id === itemTypeId) ??
+    mockDashboardData.itemTypes[0]
+  );
+}
+
+function formatShortDate(value: string) {
+  return new Intl.DateTimeFormat("en", {
+    month: "short",
+    day: "numeric",
+  }).format(new Date(value));
 }
