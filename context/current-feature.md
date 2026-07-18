@@ -1,6 +1,6 @@
 # Current Feature
 
-Prisma + Neon PostgreSQL Setup: implement Prisma 7 with Neon PostgreSQL as the application database layer.
+Seed Data: expand `prisma/seed.ts` with demo data for development and demos.
 
 ## Status
 
@@ -8,20 +8,19 @@ Completed
 
 ## Goals
 
-- Install and configure Prisma 7 for the Next.js application.
-- Configure Neon PostgreSQL as the Prisma datasource using `DATABASE_URL`.
-- Create the initial Prisma schema from the DevStash data models in `context/project-overview.md`.
-- Include NextAuth v5 models: `Account`, `Session`, and `VerificationToken`.
-- Add appropriate indexes and cascade deletes for user-owned data and join tables.
-- Create migrations with `prisma migrate dev`; do not use `prisma db push` unless explicitly requested.
-- Add seed data for system item types if it fits the implementation scope.
+- Create or replace the seed script at `prisma/seed.ts` using the data in `context/features/seed-spec.md`.
+- Seed the demo user `demo@devstash.io` with the name `Demo User`, password `12345678` hashed with bcryptjs using 12 rounds, `isPro: false`, and `emailVerified` set to the current date.
+- Seed all system item types with their Lucide icon names, colors, and `isSystem: true`.
+- Seed the development collections: React Patterns, AI Workflows, DevOps, Terminal Commands, and Design Resources.
+- Seed the requested sample items for each collection with realistic content and real URLs where links are required.
+- Make the script repeatable so development databases can be reseeded without creating duplicates.
 
 ## Notes
 
-- Feature spec: `context/features/database-spec.md`
-- Initial data models: `context/project-overview.md`
-- Database standards: `context/coding-standards.md`
-- Use Prisma 7 and read the current Prisma 7 upgrade/setup guidance before implementation because the project notes call out breaking changes.
+- Feature spec: `context/features/seed-spec.md`
+- Current seed script: `prisma/seed.ts`
+- Existing seed content may be overwritten to satisfy this feature.
+- Use the existing Prisma 7 adapter/client setup already present in the seed script.
 - Development uses the Neon branch from `DATABASE_URL`; production uses a separate Neon branch.
 
 ## History
@@ -36,3 +35,5 @@ Completed
 - 2026-06-10: Completed Dashboard UI Phase 3 with server-rendered dashboard content, a focused client frame for sidebar interactions, stats cards, recent collections, pinned items, 10 recent items, and ignored local Playwright CLI artifacts.
 - 2026-07-18: Set current feature to Prisma + Neon PostgreSQL Setup and marked it In Progress.
 - 2026-07-18: Completed Prisma + Neon PostgreSQL Setup with Prisma 7 config, Neon PostgreSQL schema, initial migration, seed data, adapter-based Prisma Client helper, and database scripts.
+- 2026-07-18: Set current feature to Seed Data and marked it In Progress.
+- 2026-07-18: Completed Seed Data with a repeatable Prisma seed script for the demo user, system item types, sample collections, and sample items from the seed specification.
