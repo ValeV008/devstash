@@ -20,12 +20,11 @@ import { type ReactNode } from "react";
 import { DashboardFrame } from "@/components/dashboard/DashboardFrame";
 import { Button } from "@/components/ui/button";
 import {
-  mockDashboardData,
-  type MockCollection,
-  type MockItem,
-  type MockItemType,
-  type MockItemTypeId,
-} from "@/lib/mock-data";
+  type DashboardCollection,
+  type DashboardCollectionsData,
+  type DashboardItemTypeName,
+} from "@/lib/db/collections";
+import { mockDashboardData, type MockItem, type MockItemTypeId } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 
 const itemTypeIcons: Record<string, LucideIcon> = {
@@ -38,7 +37,7 @@ const itemTypeIcons: Record<string, LucideIcon> = {
   Link: LinkIcon,
 };
 
-const itemTypeTextClasses: Record<MockItemTypeId, string> = {
+const itemTypeTextClasses: Record<DashboardItemTypeName, string> = {
   snippet: "text-blue-400",
   prompt: "text-violet-400",
   command: "text-orange-400",
@@ -48,7 +47,7 @@ const itemTypeTextClasses: Record<MockItemTypeId, string> = {
   link: "text-emerald-400",
 };
 
-const itemTypeBorderClasses: Record<MockItemTypeId, string> = {
+const itemTypeBorderClasses: Record<DashboardItemTypeName, string> = {
   snippet: "border-l-blue-500",
   prompt: "border-l-violet-500",
   command: "border-l-orange-500",
@@ -58,63 +57,61 @@ const itemTypeBorderClasses: Record<MockItemTypeId, string> = {
   link: "border-l-emerald-500",
 };
 
-export function DashboardShell() {
+const mockItemTypeTextClasses: Record<MockItemTypeId, string> = itemTypeTextClasses;
+const mockItemTypeBorderClasses: Record<MockItemTypeId, string> = itemTypeBorderClasses;
+
+export function DashboardShell({
+  collectionsData,
+}: {
+  collectionsData: DashboardCollectionsData;
+}) {
   return (
     <DashboardFrame>
-      <DashboardMain />
+      <DashboardMain collectionsData={collectionsData} />
     </DashboardFrame>
   );
 }
 
-function DashboardMain() {
-  const collections = [...mockDashboardData.collections].sort(
-    (first, second) =>
-      new Date(second.updatedAt).getTime() -
-      new Date(first.updatedAt).getTime(),
-  );
+function DashboardMain({
+  collectionsData,
+}: {
+  collectionsData: DashboardCollectionsData;
+}) {
+  const { collections, stats: collectionStats } = collectionsData;
   const pinnedItems = mockDashboardData.items
     .filter((item) => item.isPinned)
     .sort(
       (first, second) =>
-        new Date(second.lastUsedAt).getTime() -
-        new Date(first.lastUsedAt).getTime(),
+        new Date(second.lastUsedAt).getTime() - new Date(first.lastUsedAt).getTime(),
     );
   const recentItems = [...mockDashboardData.items]
     .sort(
       (first, second) =>
-        new Date(second.lastUsedAt).getTime() -
-        new Date(first.lastUsedAt).getTime(),
+        new Date(second.lastUsedAt).getTime() - new Date(first.lastUsedAt).getTime(),
     )
     .slice(0, 10);
-  const favoriteItemCount = mockDashboardData.items.filter(
-    (item) => item.isFavorite,
-  ).length;
-  const favoriteCollectionCount = mockDashboardData.collections.filter(
-    (collection) => collection.isFavorite,
-  ).length;
-
   const stats = [
     {
       label: "Items",
-      value: mockDashboardData.items.length,
+      value: collectionStats.itemCount,
       icon: Database,
       tone: "text-blue-400",
     },
     {
       label: "Collections",
-      value: mockDashboardData.collections.length,
+      value: collectionStats.collectionCount,
       icon: FolderOpen,
       tone: "text-emerald-400",
     },
     {
       label: "Favorite items",
-      value: favoriteItemCount,
+      value: collectionStats.favoriteItemCount,
       icon: Heart,
       tone: "text-pink-400",
     },
     {
       label: "Favorite collections",
-      value: favoriteCollectionCount,
+      value: collectionStats.favoriteCollectionCount,
       icon: Star,
       tone: "text-yellow-300",
     },
@@ -206,9 +203,7 @@ function DashboardSection({
       <div className="flex min-h-9 items-center justify-between gap-4">
         <div className="flex min-w-0 items-center gap-2">
           {Icon && <Icon className="size-5 shrink-0 text-muted-foreground" />}
-          <h3 className="truncate text-xl font-semibold tracking-normal">
-            {title}
-          </h3>
+          <h3 className="truncate text-xl font-semibold tracking-normal">{title}</h3>
         </div>
         {actionLabel && (
           <Button type="button" variant="ghost" size="sm">
@@ -221,28 +216,20 @@ function DashboardSection({
   );
 }
 
-function CollectionCard({ collection }: { collection: MockCollection }) {
-  const linkedTypes = collection.itemTypeIds
-    .map((typeId) =>
-      mockDashboardData.itemTypes.find((itemType) => itemType.id === typeId),
-    )
-    .filter((itemType): itemType is MockItemType => Boolean(itemType));
-
+function CollectionCard({ collection }: { collection: DashboardCollection }) {
   return (
     <Link
       href={`/collections/${collection.id}`}
       className={cn(
         "group flex min-h-44 flex-col rounded-lg border border-l-4 bg-card/70 p-5 transition-colors",
         "hover:border-r-border hover:border-y-border hover:bg-accent/40 focus-visible:ring-ring/50 focus-visible:ring-[3px] focus-visible:outline-none",
-        itemTypeBorderClasses[collection.defaultTypeId],
+        itemTypeBorderClasses[collection.dominantTypeName],
       )}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <h4 className="truncate text-base font-semibold">
-              {collection.name}
-            </h4>
+            <h4 className="truncate text-base font-semibold">{collection.name}</h4>
             {collection.isFavorite && (
               <Star className="size-4 shrink-0 fill-yellow-400 text-yellow-400" />
             )}
@@ -257,13 +244,14 @@ function CollectionCard({ collection }: { collection: MockCollection }) {
         {collection.description}
       </p>
       <div className="mt-auto flex flex-wrap gap-2 pt-5">
-        {linkedTypes.map((itemType) => {
+        {collection.itemTypes.map((itemType) => {
           const Icon = itemTypeIcons[itemType.icon] ?? File;
+          const textClass = getItemTypeTextClass(itemType.name);
 
           return (
             <Icon
               key={itemType.id}
-              className={cn("size-4", itemTypeTextClasses[itemType.id])}
+              className={cn("size-4", textClass)}
               aria-label={itemType.label}
             />
           );
@@ -273,13 +261,7 @@ function CollectionCard({ collection }: { collection: MockCollection }) {
   );
 }
 
-function ItemRow({
-  item,
-  featured = false,
-}: {
-  item: MockItem;
-  featured?: boolean;
-}) {
+function ItemRow({ item, featured = false }: { item: MockItem; featured?: boolean }) {
   const itemType = getItemType(item.itemTypeId);
   const Icon = itemTypeIcons[itemType.icon] ?? File;
 
@@ -289,13 +271,13 @@ function ItemRow({
       className={cn(
         "grid gap-4 rounded-lg border border-l-4 bg-card/70 p-4 transition-colors sm:grid-cols-[1fr_auto]",
         "hover:border-r-border hover:border-y-border hover:bg-accent/40 focus-visible:ring-ring/50 focus-visible:ring-[3px] focus-visible:outline-none",
-        itemTypeBorderClasses[item.itemTypeId],
+        mockItemTypeBorderClasses[item.itemTypeId],
         featured && "min-h-28",
       )}
     >
       <div className="flex min-w-0 gap-4">
         <div className="flex size-11 shrink-0 items-center justify-center rounded-md bg-secondary">
-          <Icon className={cn("size-5", itemTypeTextClasses[item.itemTypeId])} />
+          <Icon className={cn("size-5", mockItemTypeTextClasses[item.itemTypeId])} />
         </div>
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
@@ -334,6 +316,14 @@ function getItemType(itemTypeId: MockItemTypeId) {
     mockDashboardData.itemTypes.find((itemType) => itemType.id === itemTypeId) ??
     mockDashboardData.itemTypes[0]
   );
+}
+
+function getItemTypeTextClass(name: string) {
+  return isDashboardItemTypeName(name) ? itemTypeTextClasses[name] : "text-zinc-400";
+}
+
+function isDashboardItemTypeName(value: string): value is DashboardItemTypeName {
+  return value in itemTypeTextClasses;
 }
 
 function formatShortDate(value: string) {
