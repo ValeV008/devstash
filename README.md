@@ -2,6 +2,18 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
+Copy `.env.example` to `.env` and set `DATABASE_URL` to your Neon PostgreSQL development branch connection string.
+
+Create and apply database migrations with Prisma Migrate only:
+
+```bash
+npm run prisma:migrate -- --name <migration_name>
+npm run prisma:generate
+npm run prisma:seed
+```
+
+Prisma 7 uses `prisma.config.ts` for the database URL and generates the client into `src/generated/prisma`. The generated client is ignored by Git and recreated by `npm run build` or `npm run prisma:generate`.
+
 First, run the development server:
 
 ```bash
