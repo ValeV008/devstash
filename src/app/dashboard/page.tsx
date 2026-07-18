@@ -1,5 +1,12 @@
-import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import { connection } from "next/server";
 
-export default function DashboardPage() {
-  return <DashboardShell />;
+import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import { getDashboardCollectionsData } from "@/lib/db/collections";
+
+export default async function DashboardPage() {
+  await connection();
+
+  const collectionsData = await getDashboardCollectionsData();
+
+  return <DashboardShell collectionsData={collectionsData} />;
 }
