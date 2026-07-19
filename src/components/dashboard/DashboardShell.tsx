@@ -24,7 +24,7 @@ import {
   type DashboardCollectionsData,
   type DashboardItemTypeName,
 } from "@/lib/db/collections";
-import { mockDashboardData, type MockItem, type MockItemTypeId } from "@/lib/mock-data";
+import { type DashboardItem, type DashboardItemsData } from "@/lib/db/items";
 import { cn } from "@/lib/utils";
 
 const itemTypeIcons: Record<string, LucideIcon> = {
@@ -57,39 +57,29 @@ const itemTypeBorderClasses: Record<DashboardItemTypeName, string> = {
   link: "border-l-emerald-500",
 };
 
-const mockItemTypeTextClasses: Record<MockItemTypeId, string> = itemTypeTextClasses;
-const mockItemTypeBorderClasses: Record<MockItemTypeId, string> = itemTypeBorderClasses;
-
 export function DashboardShell({
   collectionsData,
+  itemsData,
 }: {
   collectionsData: DashboardCollectionsData;
+  itemsData: DashboardItemsData;
 }) {
   return (
     <DashboardFrame>
-      <DashboardMain collectionsData={collectionsData} />
+      <DashboardMain collectionsData={collectionsData} itemsData={itemsData} />
     </DashboardFrame>
   );
 }
 
 function DashboardMain({
   collectionsData,
+  itemsData,
 }: {
   collectionsData: DashboardCollectionsData;
+  itemsData: DashboardItemsData;
 }) {
   const { collections, stats: collectionStats } = collectionsData;
-  const pinnedItems = mockDashboardData.items
-    .filter((item) => item.isPinned)
-    .sort(
-      (first, second) =>
-        new Date(second.lastUsedAt).getTime() - new Date(first.lastUsedAt).getTime(),
-    );
-  const recentItems = [...mockDashboardData.items]
-    .sort(
-      (first, second) =>
-        new Date(second.lastUsedAt).getTime() - new Date(first.lastUsedAt).getTime(),
-    )
-    .slice(0, 10);
+  const { pinnedItems, recentItems } = itemsData;
   const stats = [
     {
       label: "Items",
@@ -141,13 +131,15 @@ function DashboardMain({
           </div>
         </DashboardSection>
 
-        <DashboardSection title="Pinned items" icon={Pin}>
-          <div className="grid gap-3">
-            {pinnedItems.map((item) => (
-              <ItemRow key={item.id} item={item} featured />
-            ))}
-          </div>
-        </DashboardSection>
+        {pinnedItems.length > 0 && (
+          <DashboardSection title="Pinned items" icon={Pin}>
+            <div className="grid gap-3">
+              {pinnedItems.map((item) => (
+                <ItemRow key={item.id} item={item} featured />
+              ))}
+            </div>
+          </DashboardSection>
+        )}
 
         <DashboardSection title="Recent items">
           <div className="grid gap-3">
@@ -261,8 +253,14 @@ function CollectionCard({ collection }: { collection: DashboardCollection }) {
   );
 }
 
-function ItemRow({ item, featured = false }: { item: MockItem; featured?: boolean }) {
-  const itemType = getItemType(item.itemTypeId);
+function ItemRow({
+  item,
+  featured = false,
+}: {
+  item: DashboardItem;
+  featured?: boolean;
+}) {
+  const itemType = item.itemType;
   const Icon = itemTypeIcons[itemType.icon] ?? File;
 
   return (
@@ -271,13 +269,13 @@ function ItemRow({ item, featured = false }: { item: MockItem; featured?: boolea
       className={cn(
         "grid gap-4 rounded-lg border border-l-4 bg-card/70 p-4 transition-colors sm:grid-cols-[1fr_auto]",
         "hover:border-r-border hover:border-y-border hover:bg-accent/40 focus-visible:ring-ring/50 focus-visible:ring-[3px] focus-visible:outline-none",
-        mockItemTypeBorderClasses[item.itemTypeId],
+        itemTypeBorderClasses[item.typeName],
         featured && "min-h-28",
       )}
     >
       <div className="flex min-w-0 gap-4">
         <div className="flex size-11 shrink-0 items-center justify-center rounded-md bg-secondary">
-          <Icon className={cn("size-5", mockItemTypeTextClasses[item.itemTypeId])} />
+          <Icon className={cn("size-5", itemTypeTextClasses[item.typeName])} />
         </div>
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
@@ -305,16 +303,9 @@ function ItemRow({ item, featured = false }: { item: MockItem; featured?: boolea
         </div>
       </div>
       <time className="text-sm whitespace-nowrap text-muted-foreground sm:pt-4">
-        {formatShortDate(item.lastUsedAt)}
+        {formatShortDate(item.updatedAt)}
       </time>
     </Link>
-  );
-}
-
-function getItemType(itemTypeId: MockItemTypeId) {
-  return (
-    mockDashboardData.itemTypes.find((itemType) => itemType.id === itemTypeId) ??
-    mockDashboardData.itemTypes[0]
   );
 }
 
