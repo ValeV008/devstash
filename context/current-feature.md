@@ -1,6 +1,6 @@
 # Current Feature
 
-Dashboard Items: replace dashboard pinned and recent item mock data with database-backed item data.
+Stats & Sidebar: replace dashboard stats and sidebar mock data with database-backed data.
 
 ## Status
 
@@ -8,22 +8,23 @@ Completed
 
 ## Goals
 
-- Replace the dummy pinned and recent item data in the dashboard main area with data from the Neon database using Prisma.
-- Create `src/lib/db/items.ts` with item data fetching functions.
-- Fetch items directly in the dashboard server component.
-- Keep the existing dashboard item card layout and design.
-- Derive each item card icon and border color from the item type.
-- Display item type tags and the existing item card metadata using database data.
-- Hide the pinned items section when there are no pinned items.
-- Update the collection stats display using database data.
+- Display dashboard stats from database data while keeping the current design and layout.
+- Display system item types in the sidebar with their icons and links to `/items/[typename]`.
+- Display actual collection data from the database in the sidebar.
+- Add a "View all collections" link under the sidebar collections list that routes to `/collections`.
+- Keep star icons for favorite collections.
+- Show a colored circle for recent collections based on the most-used item type in each collection.
+- Add needed database functions in `src/lib/db/items.ts`, using `src/lib/db/collections.ts` as a reference where useful.
 
 ## Notes
 
-- Feature spec: `context/features/dashboard-items-spec.md`
+- Feature spec: `context/features/stats-sidebar-spec.md`
 - Dashboard page: `src/app/dashboard/page.tsx`
+- Dashboard frame: `src/components/dashboard/DashboardFrame.tsx`
+- Dashboard shell: `src/components/dashboard/DashboardShell.tsx`
 - Current mock data source: `src/lib/mock-data.ts`
-- New database data layer: `src/lib/db/items.ts`
-- Reference screenshot: `context/screenshots/dashboard-ui-main.png`
+- Existing collections data layer: `src/lib/db/collections.ts`
+- Item data layer: `src/lib/db/items.ts`
 
 ## History
 
@@ -43,3 +44,5 @@ Completed
 - 2026-07-18: Completed Dashboard Collections with Prisma-backed recent collection cards, database-driven collection stats, dominant type border colors, and item type icons.
 - 2026-07-19: Set current feature to Dashboard Items and marked it In Progress.
 - 2026-07-19: Completed Dashboard Items with Prisma-backed pinned and recent dashboard items, item type styling, tag display, and empty pinned section handling.
+- 2026-07-19: Set current feature to Stats & Sidebar and marked it In Progress.
+- 2026-07-19: Completed Stats & Sidebar with database-backed dashboard stats, system item type sidebar links, favorite/recent sidebar collections, dominant type indicators, and a view-all collections link.

@@ -39,6 +39,23 @@ export interface DashboardCollectionsData {
   stats: DashboardCollectionStats;
 }
 
+export interface DashboardSidebarCollection {
+  id: string;
+  name: string;
+  itemCount: number;
+  dominantTypeName: DashboardItemTypeName;
+}
+
+export interface DashboardSidebarCollectionsData {
+  favoriteCollections: DashboardSidebarCollection[];
+  recentCollections: DashboardSidebarCollection[];
+}
+
+export interface DashboardSidebarUser {
+  name: string;
+  email: string;
+}
+
 const itemTypeNames = [
   "snippet",
   "prompt",
@@ -111,6 +128,79 @@ export async function getDashboardCollectionsData(): Promise<DashboardCollection
       favoriteItemCount,
       favoriteCollectionCount,
     },
+  };
+}
+
+export async function getDashboardSidebarCollectionsData(): Promise<DashboardSidebarCollectionsData> {
+  const [favoriteCollections, recentCollections] = await Promise.all([
+    prisma.collection.findMany({
+      where: { isFavorite: true },
+      orderBy: { updatedAt: "desc" },
+      take: 4,
+      select: dashboardSidebarCollectionSelect,
+    }),
+    prisma.collection.findMany({
+      orderBy: { updatedAt: "desc" },
+      take: 5,
+      select: dashboardSidebarCollectionSelect,
+    }),
+  ]);
+
+  return {
+    favoriteCollections: favoriteCollections.map(toDashboardSidebarCollection),
+    recentCollections: recentCollections.map(toDashboardSidebarCollection),
+  };
+}
+
+export async function getDashboardSidebarUser(): Promise<DashboardSidebarUser> {
+  const user = await prisma.user.findFirst({
+    orderBy: { createdAt: "asc" },
+    select: {
+      name: true,
+      email: true,
+    },
+  });
+
+  return {
+    name: user?.name ?? "DevStash User",
+    email: user?.email ?? "user@devstash.local",
+  };
+}
+
+const dashboardSidebarCollectionSelect = {
+  id: true,
+  name: true,
+  items: {
+    select: {
+      item: {
+        select: {
+          itemType: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      },
+    },
+  },
+} as const;
+
+function toDashboardSidebarCollection(collection: {
+  id: string;
+  name: string;
+  items: Array<{
+    item: {
+      itemType: {
+        name: string;
+      };
+    };
+  }>;
+}): DashboardSidebarCollection {
+  return {
+    id: collection.id,
+    name: collection.name,
+    itemCount: collection.items.length,
+    dominantTypeName: getDominantTypeName(collection.items),
   };
 }
 

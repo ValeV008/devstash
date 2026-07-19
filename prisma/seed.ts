@@ -64,6 +64,7 @@ const seedCollections = [
     id: "seed-collection-react-patterns",
     name: "React Patterns",
     description: "Reusable React patterns and hooks",
+    isFavorite: true,
     defaultTypeName: "snippet",
     items: [
       {
@@ -164,6 +165,7 @@ export async function settleWithFallback<T>(promise: Promise<T>, fallback: T) {
     id: "seed-collection-ai-workflows",
     name: "AI Workflows",
     description: "AI prompts and workflow automations",
+    isFavorite: true,
     defaultTypeName: "prompt",
     items: [
       {
@@ -383,6 +385,7 @@ async function main() {
         id: collection.id,
         name: collection.name,
         description: collection.description,
+        isFavorite: "isFavorite" in collection ? collection.isFavorite : false,
         userId: user.id,
         defaultTypeId,
       },

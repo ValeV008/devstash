@@ -27,6 +27,16 @@ export interface DashboardItemsData {
   recentItems: DashboardItem[];
 }
 
+export interface DashboardSidebarItemType {
+  id: string;
+  name: DashboardItemTypeName;
+  label: string;
+  icon: string;
+  color: string;
+  itemCount: number;
+  route: string;
+}
+
 const itemTypeNames = [
   "snippet",
   "prompt",
@@ -57,6 +67,44 @@ export async function getDashboardItemsData(): Promise<DashboardItemsData> {
     pinnedItems: pinnedItems.map(toDashboardItem),
     recentItems: recentItems.map(toDashboardItem),
   };
+}
+
+export async function getDashboardSidebarItemTypes(): Promise<
+  DashboardSidebarItemType[]
+> {
+  const itemTypes = await prisma.itemType.findMany({
+    where: { isSystem: true },
+    select: {
+      id: true,
+      name: true,
+      icon: true,
+      color: true,
+      _count: {
+        select: {
+          items: true,
+        },
+      },
+    },
+  });
+
+  return itemTypes
+    .map((itemType) => {
+      const name = getDashboardItemTypeName(itemType.name);
+
+      return {
+        id: itemType.id,
+        name,
+        label: toItemTypeLabel(itemType.name),
+        icon: itemType.icon,
+        color: itemType.color,
+        itemCount: itemType._count.items,
+        route: `/items/${toItemTypeLabel(itemType.name).toLowerCase()}`,
+      };
+    })
+    .sort(
+      (first, second) =>
+        itemTypeNames.indexOf(first.name) - itemTypeNames.indexOf(second.name),
+    );
 }
 
 const dashboardItemSelect = {

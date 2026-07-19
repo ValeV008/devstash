@@ -25,11 +25,11 @@ import { type ReactNode, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  mockDashboardData,
-  type MockCollection,
-  type MockItemType,
-  type MockItemTypeId,
-} from "@/lib/mock-data";
+  type DashboardItemTypeName,
+  type DashboardSidebarCollection,
+  type DashboardSidebarUser,
+} from "@/lib/db/collections";
+import { type DashboardSidebarItemType } from "@/lib/db/items";
 import { cn } from "@/lib/utils";
 
 const itemTypeIcons: Record<string, LucideIcon> = {
@@ -42,7 +42,7 @@ const itemTypeIcons: Record<string, LucideIcon> = {
   Link: LinkIcon,
 };
 
-const itemTypeAccentClasses: Record<MockItemTypeId, string> = {
+const itemTypeAccentClasses: Record<DashboardItemTypeName, string> = {
   snippet: "bg-blue-500",
   prompt: "bg-violet-500",
   command: "bg-orange-500",
@@ -52,7 +52,7 @@ const itemTypeAccentClasses: Record<MockItemTypeId, string> = {
   link: "bg-emerald-500",
 };
 
-const itemTypeHoverClasses: Record<MockItemTypeId, string> = {
+const itemTypeHoverClasses: Record<DashboardItemTypeName, string> = {
   snippet: "hover:border-blue-500/50 hover:bg-blue-500/10",
   prompt: "hover:border-violet-500/50 hover:bg-violet-500/10",
   command: "hover:border-orange-500/50 hover:bg-orange-500/10",
@@ -62,7 +62,20 @@ const itemTypeHoverClasses: Record<MockItemTypeId, string> = {
   link: "hover:border-emerald-500/50 hover:bg-emerald-500/10",
 };
 
-export function DashboardFrame({ children }: { children: ReactNode }) {
+export interface DashboardSidebarData {
+  itemTypes: DashboardSidebarItemType[];
+  favoriteCollections: DashboardSidebarCollection[];
+  recentCollections: DashboardSidebarCollection[];
+  user: DashboardSidebarUser;
+}
+
+export function DashboardFrame({
+  children,
+  sidebarData,
+}: {
+  children: ReactNode;
+  sidebarData: DashboardSidebarData;
+}) {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
@@ -96,9 +109,7 @@ export function DashboardFrame({ children }: { children: ReactNode }) {
         </Button>
 
         <div className="flex min-w-0 flex-1 items-center gap-3">
-          <h1 className="shrink-0 text-lg font-semibold tracking-normal">
-            DevStash
-          </h1>
+          <h1 className="shrink-0 text-lg font-semibold tracking-normal">DevStash</h1>
           <div className="relative hidden w-full max-w-xl sm:block">
             <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
@@ -118,6 +129,7 @@ export function DashboardFrame({ children }: { children: ReactNode }) {
 
       <MobileSidebar
         isOpen={isMobileSidebarOpen}
+        sidebarData={sidebarData}
         onClose={() => setIsMobileSidebarOpen(false)}
       />
 
@@ -131,7 +143,7 @@ export function DashboardFrame({ children }: { children: ReactNode }) {
           id="dashboard-desktop-sidebar"
           className="hidden min-h-0 border-r bg-card/60 lg:flex"
         >
-          <SidebarContent collapsed={isSidebarCollapsed} />
+          <SidebarContent collapsed={isSidebarCollapsed} sidebarData={sidebarData} />
         </aside>
 
         {children}
@@ -142,9 +154,11 @@ export function DashboardFrame({ children }: { children: ReactNode }) {
 
 function MobileSidebar({
   isOpen,
+  sidebarData,
   onClose,
 }: {
   isOpen: boolean;
+  sidebarData: DashboardSidebarData;
   onClose: () => void;
 }) {
   if (!isOpen) {
@@ -176,7 +190,11 @@ function MobileSidebar({
               <X />
             </Button>
           </div>
-          <SidebarContent collapsed={false} onLinkClick={onClose} />
+          <SidebarContent
+            collapsed={false}
+            sidebarData={sidebarData}
+            onLinkClick={onClose}
+          />
         </div>
       </aside>
     </div>
@@ -185,22 +203,13 @@ function MobileSidebar({
 
 function SidebarContent({
   collapsed,
+  sidebarData,
   onLinkClick,
 }: {
   collapsed: boolean;
+  sidebarData: DashboardSidebarData;
   onLinkClick?: () => void;
 }) {
-  const favoriteCollections = mockDashboardData.collections
-    .filter((collection) => collection.isFavorite)
-    .slice(0, 4);
-  const recentCollections = [...mockDashboardData.collections]
-    .sort(
-      (first, second) =>
-        new Date(second.updatedAt).getTime() -
-        new Date(first.updatedAt).getTime(),
-    )
-    .slice(0, 5);
-
   return (
     <div
       className={cn(
@@ -214,7 +223,7 @@ function SidebarContent({
         collapsed={collapsed}
         className="gap-1.5"
       >
-        {mockDashboardData.itemTypes.map((itemType) => (
+        {sidebarData.itemTypes.map((itemType) => (
           <ItemTypeLink
             key={itemType.id}
             itemType={itemType}
@@ -225,10 +234,11 @@ function SidebarContent({
       </SidebarSection>
 
       <SidebarSection title="Favorites" icon={Star} collapsed={collapsed}>
-        {favoriteCollections.map((collection) => (
+        {sidebarData.favoriteCollections.map((collection) => (
           <CollectionLink
             key={collection.id}
             collection={collection}
+            marker="favorite"
             collapsed={collapsed}
             onClick={onLinkClick}
           />
@@ -236,17 +246,19 @@ function SidebarContent({
       </SidebarSection>
 
       <SidebarSection title="Recent" icon={Clock} collapsed={collapsed}>
-        {recentCollections.map((collection) => (
+        {sidebarData.recentCollections.map((collection) => (
           <CollectionLink
             key={collection.id}
             collection={collection}
+            marker="dominantType"
             collapsed={collapsed}
             onClick={onLinkClick}
           />
         ))}
+        <ViewAllCollectionsLink collapsed={collapsed} onClick={onLinkClick} />
       </SidebarSection>
 
-      <UserArea collapsed={collapsed} />
+      <UserArea collapsed={collapsed} user={sidebarData.user} />
     </div>
   );
 }
@@ -288,7 +300,7 @@ function ItemTypeLink({
   collapsed,
   onClick,
 }: {
-  itemType: MockItemType;
+  itemType: DashboardSidebarItemType;
   collapsed: boolean;
   onClick?: () => void;
 }) {
@@ -302,14 +314,14 @@ function ItemTypeLink({
       className={cn(
         "flex h-10 items-center gap-3 rounded-md border border-transparent px-2 text-sm text-muted-foreground transition-colors",
         "hover:text-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] focus-visible:outline-none",
-        itemTypeHoverClasses[itemType.id],
+        itemTypeHoverClasses[itemType.name],
         collapsed && "justify-center px-0",
       )}
     >
       <span
         className={cn(
           "flex size-7 shrink-0 items-center justify-center rounded-md text-white",
-          itemTypeAccentClasses[itemType.id],
+          itemTypeAccentClasses[itemType.name],
         )}
       >
         <Icon className="size-4" />
@@ -317,9 +329,7 @@ function ItemTypeLink({
       {!collapsed && (
         <>
           <span className="min-w-0 flex-1 truncate">{itemType.label}</span>
-          <span className="text-xs text-muted-foreground">
-            {itemType.itemCount}
-          </span>
+          <span className="text-xs text-muted-foreground">{itemType.itemCount}</span>
         </>
       )}
     </Link>
@@ -328,10 +338,12 @@ function ItemTypeLink({
 
 function CollectionLink({
   collection,
+  marker,
   collapsed,
   onClick,
 }: {
-  collection: MockCollection;
+  collection: DashboardSidebarCollection;
+  marker: "favorite" | "dominantType";
   collapsed: boolean;
   onClick?: () => void;
 }) {
@@ -346,27 +358,60 @@ function CollectionLink({
         collapsed && "justify-center px-0",
       )}
     >
-      <span
-        className={cn(
-          "size-2.5 shrink-0 rounded-full",
-          itemTypeAccentClasses[collection.defaultTypeId],
-          collapsed && "size-3",
-        )}
-      />
+      {marker === "favorite" ? (
+        <Star className="size-4 shrink-0 fill-yellow-400 text-yellow-400" />
+      ) : (
+        <span
+          className={cn(
+            "size-2.5 shrink-0 rounded-full",
+            itemTypeAccentClasses[collection.dominantTypeName],
+            collapsed && "size-3",
+          )}
+        />
+      )}
       {!collapsed && (
         <>
           <span className="min-w-0 flex-1 truncate">{collection.name}</span>
-          <span className="text-xs text-muted-foreground">
-            {collection.itemCount}
-          </span>
+          <span className="text-xs text-muted-foreground">{collection.itemCount}</span>
         </>
       )}
     </Link>
   );
 }
 
-function UserArea({ collapsed }: { collapsed: boolean }) {
-  const user = mockDashboardData.currentUser;
+function ViewAllCollectionsLink({
+  collapsed,
+  onClick,
+}: {
+  collapsed: boolean;
+  onClick?: () => void;
+}) {
+  return (
+    <Link
+      href="/collections"
+      title={collapsed ? "View all collections" : undefined}
+      onClick={onClick}
+      className={cn(
+        "mt-1 flex h-9 items-center gap-3 rounded-md px-2 text-sm font-medium text-muted-foreground transition-colors",
+        "hover:bg-accent hover:text-accent-foreground focus-visible:ring-ring/50 focus-visible:ring-[3px] focus-visible:outline-none",
+        collapsed && "justify-center px-0",
+      )}
+    >
+      <Folder className="size-4 shrink-0" />
+      {!collapsed && (
+        <span className="min-w-0 flex-1 truncate">View all collections</span>
+      )}
+    </Link>
+  );
+}
+
+function UserArea({
+  collapsed,
+  user,
+}: {
+  collapsed: boolean;
+  user: DashboardSidebarUser;
+}) {
   const initials = user.name
     .split(" ")
     .map((part) => part[0])
@@ -388,9 +433,7 @@ function UserArea({ collapsed }: { collapsed: boolean }) {
         {!collapsed && (
           <div className="min-w-0">
             <p className="truncate text-sm font-medium">{user.name}</p>
-            <p className="truncate text-xs text-muted-foreground">
-              {user.email}
-            </p>
+            <p className="truncate text-xs text-muted-foreground">{user.email}</p>
           </div>
         )}
       </div>

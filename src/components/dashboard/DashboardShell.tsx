@@ -17,7 +17,10 @@ import {
 } from "lucide-react";
 import { type ReactNode } from "react";
 
-import { DashboardFrame } from "@/components/dashboard/DashboardFrame";
+import {
+  DashboardFrame,
+  type DashboardSidebarData,
+} from "@/components/dashboard/DashboardFrame";
 import { Button } from "@/components/ui/button";
 import {
   type DashboardCollection,
@@ -60,12 +63,14 @@ const itemTypeBorderClasses: Record<DashboardItemTypeName, string> = {
 export function DashboardShell({
   collectionsData,
   itemsData,
+  sidebarData,
 }: {
   collectionsData: DashboardCollectionsData;
   itemsData: DashboardItemsData;
+  sidebarData: DashboardSidebarData;
 }) {
   return (
-    <DashboardFrame>
+    <DashboardFrame sidebarData={sidebarData}>
       <DashboardMain collectionsData={collectionsData} itemsData={itemsData} />
     </DashboardFrame>
   );
