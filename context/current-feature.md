@@ -1,6 +1,6 @@
 # Current Feature
 
-Dashboard Collections: replace dashboard recent collection mock data with database-backed collection data.
+Dashboard Items: replace dashboard pinned and recent item mock data with database-backed item data.
 
 ## Status
 
@@ -8,21 +8,21 @@ Completed
 
 ## Goals
 
-- Replace the dummy recent collection data in the dashboard main area with data from the Neon database using Prisma.
-- Create `src/lib/db/collections.ts` with collection data fetching functions.
-- Fetch collections directly in the dashboard server component.
-- Keep the existing dashboard collection card design with 6 recent collection cards.
-- Derive each collection card border color from the most-used content type in that collection.
-- Show small icons for all item types present in each collection.
+- Replace the dummy pinned and recent item data in the dashboard main area with data from the Neon database using Prisma.
+- Create `src/lib/db/items.ts` with item data fetching functions.
+- Fetch items directly in the dashboard server component.
+- Keep the existing dashboard item card layout and design.
+- Derive each item card icon and border color from the item type.
+- Display item type tags and the existing item card metadata using database data.
+- Hide the pinned items section when there are no pinned items.
 - Update the collection stats display using database data.
-- Do not add the item list underneath the collection cards yet.
 
 ## Notes
 
-- Feature spec: `context/features/dashboard-collections-spec.md`
+- Feature spec: `context/features/dashboard-items-spec.md`
 - Dashboard page: `src/app/dashboard/page.tsx`
 - Current mock data source: `src/lib/mock-data.ts`
-- New database data layer: `src/lib/db/collections.ts`
+- New database data layer: `src/lib/db/items.ts`
 - Reference screenshot: `context/screenshots/dashboard-ui-main.png`
 
 ## History
@@ -41,3 +41,5 @@ Completed
 - 2026-07-18: Completed Seed Data with a repeatable Prisma seed script for the demo user, system item types, sample collections, and sample items from the seed specification.
 - 2026-07-18: Set current feature to Dashboard Collections and marked it In Progress.
 - 2026-07-18: Completed Dashboard Collections with Prisma-backed recent collection cards, database-driven collection stats, dominant type border colors, and item type icons.
+- 2026-07-19: Set current feature to Dashboard Items and marked it In Progress.
+- 2026-07-19: Completed Dashboard Items with Prisma-backed pinned and recent dashboard items, item type styling, tag display, and empty pinned section handling.

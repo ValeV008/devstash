@@ -71,6 +71,7 @@ const seedCollections = [
         title: "Reusable Custom Hooks",
         description: "Debounce and localStorage hooks for client-side React features.",
         typeName: "snippet",
+        isPinned: true,
         language: "typescript",
         content: `import { useEffect, useState } from "react";
 
@@ -171,6 +172,7 @@ export async function settleWithFallback<T>(promise: Promise<T>, fallback: T) {
         description:
           "Review changes for bugs, regressions, and missing tests before merge.",
         typeName: "prompt",
+        isPinned: true,
         content:
           "Review this diff as a senior engineer. Prioritize correctness bugs, data loss risks, security concerns, accessibility regressions, and missing focused tests. Return findings first with file references, then open questions, then a concise summary.",
       },
@@ -403,6 +405,7 @@ async function main() {
           contentType,
           content: "content" in item ? item.content : undefined,
           url: "url" in item ? item.url : undefined,
+          isPinned: "isPinned" in item ? item.isPinned : false,
           language: "language" in item ? item.language : undefined,
           userId: user.id,
           itemTypeId,
