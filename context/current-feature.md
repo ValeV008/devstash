@@ -1,12 +1,24 @@
-# Current Feature
+# Current Feature: Tighten Dashboard Query Performance
 
 ## Status
 
-Not Started
+In Progress
 
 ## Goals
 
+- Replace unbounded dashboard count reads with Prisma `_count` where possible.
+- Add explicit limits to dashboard item lists such as pinned and recent items.
+- Avoid loading all collection item relations just to calculate collection counts or dominant item types.
+- Add focused Prisma indexes for the dashboard's current sort and filter paths: item `updatedAt`, item `isPinned + updatedAt`, item `isFavorite + updatedAt`, and collection `updatedAt`.
+- Validate lint, type checks, and database-related checks after query/schema changes.
+
 ## Notes
+
+- Recommendation priority: improve dashboard query performance after the stale subpage cleanup.
+- Keep the feature limited to query shape, list bounds, and schema indexes; avoid unrelated component splitting or UI redesign.
+- The index list should stay scoped to current dashboard reads; defer broader user-scoped compound indexes until user scoping is implemented.
+- Apply schema/index changes through Prisma migrations, not manual database edits.
+- Likely affected files: `src/lib/db/items.ts`, `src/lib/db/collections.ts`, and `prisma/schema.prisma`.
 
 ## History
 

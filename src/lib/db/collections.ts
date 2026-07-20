@@ -1,3 +1,4 @@
+import { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 
 export type DashboardItemTypeName =
@@ -67,6 +68,24 @@ const itemTypeNames = [
 ] as const satisfies readonly DashboardItemTypeName[];
 
 const itemTypeNameSet = new Set<string>(itemTypeNames);
+const DASHBOARD_COLLECTIONS_LIMIT = 6;
+const DASHBOARD_FAVORITE_COLLECTIONS_LIMIT = 4;
+const DASHBOARD_RECENT_COLLECTIONS_LIMIT = 5;
+
+interface CollectionTypeCountRow {
+  collectionId: string;
+  itemTypeId: string;
+  itemTypeName: string;
+  itemTypeIcon: string;
+  itemTypeColor: string;
+  itemCount: number;
+}
+
+interface CollectionTypeSummary {
+  dominantTypeName: DashboardItemTypeName;
+  dominantTypeCount: number;
+  itemTypes: DashboardCollectionType[];
+}
 
 export async function getDashboardCollectionsData(): Promise<DashboardCollectionsData> {
   const [
@@ -78,26 +97,15 @@ export async function getDashboardCollectionsData(): Promise<DashboardCollection
   ] = await Promise.all([
     prisma.collection.findMany({
       orderBy: { updatedAt: "desc" },
-      take: 6,
+      take: DASHBOARD_COLLECTIONS_LIMIT,
       select: {
         id: true,
         name: true,
         description: true,
         isFavorite: true,
-        items: {
+        _count: {
           select: {
-            item: {
-              select: {
-                itemType: {
-                  select: {
-                    id: true,
-                    name: true,
-                    icon: true,
-                    color: true,
-                  },
-                },
-              },
-            },
+            items: true,
           },
         },
       },
@@ -107,19 +115,22 @@ export async function getDashboardCollectionsData(): Promise<DashboardCollection
     prisma.item.count({ where: { isFavorite: true } }),
     prisma.collection.count({ where: { isFavorite: true } }),
   ]);
+  const collectionTypeSummaries = await getCollectionTypeSummaries(
+    collections.map((collection) => collection.id),
+  );
 
   return {
     collections: collections.map((collection) => {
-      const itemTypes = getCollectionItemTypes(collection.items);
+      const typeSummary = collectionTypeSummaries.get(collection.id);
 
       return {
         id: collection.id,
         name: collection.name,
         description: collection.description ?? "",
         isFavorite: collection.isFavorite,
-        itemCount: collection.items.length,
-        dominantTypeName: getDominantTypeName(collection.items),
-        itemTypes,
+        itemCount: collection._count.items,
+        dominantTypeName: typeSummary?.dominantTypeName ?? "snippet",
+        itemTypes: typeSummary?.itemTypes ?? [],
       };
     }),
     stats: {
@@ -136,19 +147,35 @@ export async function getDashboardSidebarCollectionsData(): Promise<DashboardSid
     prisma.collection.findMany({
       where: { isFavorite: true },
       orderBy: { updatedAt: "desc" },
-      take: 4,
+      take: DASHBOARD_FAVORITE_COLLECTIONS_LIMIT,
       select: dashboardSidebarCollectionSelect,
     }),
     prisma.collection.findMany({
       orderBy: { updatedAt: "desc" },
-      take: 5,
+      take: DASHBOARD_RECENT_COLLECTIONS_LIMIT,
       select: dashboardSidebarCollectionSelect,
     }),
   ]);
+  const collectionTypeSummaries = await getCollectionTypeSummaries([
+    ...new Set([
+      ...favoriteCollections.map((collection) => collection.id),
+      ...recentCollections.map((collection) => collection.id),
+    ]),
+  ]);
 
   return {
-    favoriteCollections: favoriteCollections.map(toDashboardSidebarCollection),
-    recentCollections: recentCollections.map(toDashboardSidebarCollection),
+    favoriteCollections: favoriteCollections.map((collection) =>
+      toDashboardSidebarCollection(
+        collection,
+        collectionTypeSummaries.get(collection.id),
+      ),
+    ),
+    recentCollections: recentCollections.map((collection) =>
+      toDashboardSidebarCollection(
+        collection,
+        collectionTypeSummaries.get(collection.id),
+      ),
+    ),
   };
 }
 
@@ -170,93 +197,85 @@ export async function getDashboardSidebarUser(): Promise<DashboardSidebarUser> {
 const dashboardSidebarCollectionSelect = {
   id: true,
   name: true,
-  items: {
+  _count: {
     select: {
-      item: {
-        select: {
-          itemType: {
-            select: {
-              name: true,
-            },
-          },
-        },
-      },
+      items: true,
     },
   },
 } as const;
 
-function toDashboardSidebarCollection(collection: {
-  id: string;
-  name: string;
-  items: Array<{
-    item: {
-      itemType: {
-        name: string;
-      };
+function toDashboardSidebarCollection(
+  collection: {
+    id: string;
+    name: string;
+    _count: {
+      items: number;
     };
-  }>;
-}): DashboardSidebarCollection {
+  },
+  typeSummary: CollectionTypeSummary | undefined,
+): DashboardSidebarCollection {
   return {
     id: collection.id,
     name: collection.name,
-    itemCount: collection.items.length,
-    dominantTypeName: getDominantTypeName(collection.items),
+    itemCount: collection._count.items,
+    dominantTypeName: typeSummary?.dominantTypeName ?? "snippet",
   };
 }
 
-function getCollectionItemTypes(
-  items: Array<{
-    item: {
-      itemType: {
-        id: string;
-        name: string;
-        icon: string;
-        color: string;
-      };
-    };
-  }>,
-) {
-  const itemTypes = new Map<string, DashboardCollectionType>();
-
-  for (const { item } of items) {
-    itemTypes.set(item.itemType.id, {
-      id: item.itemType.id,
-      name: item.itemType.name,
-      label: toItemTypeLabel(item.itemType.name),
-      icon: item.itemType.icon,
-      color: item.itemType.color,
-    });
+async function getCollectionTypeSummaries(collectionIds: string[]) {
+  if (collectionIds.length === 0) {
+    return new Map<string, CollectionTypeSummary>();
   }
 
-  return [...itemTypes.values()];
+  const rows = await prisma.$queryRaw<CollectionTypeCountRow[]>(Prisma.sql`
+    SELECT
+      ic."collectionId" AS "collectionId",
+      it."id" AS "itemTypeId",
+      it."name" AS "itemTypeName",
+      it."icon" AS "itemTypeIcon",
+      it."color" AS "itemTypeColor",
+      COUNT(*)::int AS "itemCount"
+    FROM "item_collections" ic
+    INNER JOIN "items" i ON i."id" = ic."itemId"
+    INNER JOIN "item_types" it ON it."id" = i."itemTypeId"
+    WHERE ic."collectionId" IN (${Prisma.join(collectionIds)})
+    GROUP BY ic."collectionId", it."id", it."name", it."icon", it."color"
+    ORDER BY ic."collectionId" ASC, "itemCount" DESC, it."name" ASC
+  `);
+
+  return toCollectionTypeSummaries(rows);
 }
 
-function getDominantTypeName(
-  items: Array<{
-    item: {
-      itemType: {
-        name: string;
-      };
+function toCollectionTypeSummaries(rows: CollectionTypeCountRow[]) {
+  const summaries = new Map<string, CollectionTypeSummary>();
+
+  for (const row of rows) {
+    const summary = summaries.get(row.collectionId) ?? {
+      dominantTypeName: "snippet",
+      dominantTypeCount: 0,
+      itemTypes: [],
     };
-  }>,
-): DashboardItemTypeName {
-  const counts = new Map<string, number>();
 
-  for (const { item } of items) {
-    counts.set(item.itemType.name, (counts.get(item.itemType.name) ?? 0) + 1);
-  }
+    summary.itemTypes.push({
+      id: row.itemTypeId,
+      name: row.itemTypeName,
+      label: toItemTypeLabel(row.itemTypeName),
+      icon: row.itemTypeIcon,
+      color: row.itemTypeColor,
+    });
 
-  let dominantName: DashboardItemTypeName = "snippet";
-  let dominantCount = 0;
-
-  for (const [name, count] of counts) {
-    if (count > dominantCount && isDashboardItemTypeName(name)) {
-      dominantName = name;
-      dominantCount = count;
+    if (
+      row.itemCount > summary.dominantTypeCount &&
+      isDashboardItemTypeName(row.itemTypeName)
+    ) {
+      summary.dominantTypeName = row.itemTypeName;
+      summary.dominantTypeCount = row.itemCount;
     }
+
+    summaries.set(row.collectionId, summary);
   }
 
-  return dominantName;
+  return summaries;
 }
 
 function isDashboardItemTypeName(value: string): value is DashboardItemTypeName {
