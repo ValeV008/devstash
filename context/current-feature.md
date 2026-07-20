@@ -6,9 +6,7 @@ Not Started
 
 ## Goals
 
-
 ## Notes
-
 
 ## History
 
@@ -31,3 +29,4 @@ Not Started
 - 2026-07-19: Set current feature to Stats & Sidebar and marked it In Progress.
 - 2026-07-19: Completed Stats & Sidebar with database-backed dashboard stats, system item type sidebar links, favorite/recent sidebar collections, dominant type indicators, and a view-all collections link.
 - 2026-07-20: Completed Add Pro Badge to Sidebar with a reusable ShadCN-style badge component and subtle uppercase PRO badges for Files and Images sidebar item types.
+- 2026-07-20: Completed Remove Stale Dashboard Subpages by deleting mock-backed collection and item type pages and removing dashboard links to unimplemented routes.
