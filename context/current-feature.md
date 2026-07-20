@@ -1,22 +1,14 @@
-# Current Feature: Add Pro Badge to Sidebar
+# Current Feature
 
 ## Status
 
-In Progress
+Not Started
 
 ## Goals
 
-- Add a subtle uppercase `PRO` badge next to the Files item type in the sidebar.
-- Add a subtle uppercase `PRO` badge next to the Images item type in the sidebar.
-- Use the ShadCN UI badge component for the sidebar badges.
-- Keep the badge styling clean, subtle, and consistent with the existing sidebar design.
 
 ## Notes
 
-- Feature spec: `context/features/add-pro-badge-sidebar.md`
-- Likely affected file: `src/components/dashboard/DashboardShell.tsx`
-- Constraint: Badge text must be `PRO` in all uppercase.
-- Constraint: Use ShadCN UI badge component.
 
 ## History
 
@@ -38,3 +30,4 @@ In Progress
 - 2026-07-19: Completed Dashboard Items with Prisma-backed pinned and recent dashboard items, item type styling, tag display, and empty pinned section handling.
 - 2026-07-19: Set current feature to Stats & Sidebar and marked it In Progress.
 - 2026-07-19: Completed Stats & Sidebar with database-backed dashboard stats, system item type sidebar links, favorite/recent sidebar collections, dominant type indicators, and a view-all collections link.
+- 2026-07-20: Completed Add Pro Badge to Sidebar with a reusable ShadCN-style badge component and subtle uppercase PRO badges for Files and Images sidebar item types.
