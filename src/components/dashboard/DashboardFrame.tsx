@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { type ReactNode, useState } from "react";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -305,6 +306,7 @@ function ItemTypeLink({
   onClick?: () => void;
 }) {
   const Icon = itemTypeIcons[itemType.icon] ?? File;
+  const isProType = itemType.name === "file" || itemType.name === "image";
 
   return (
     <Link
@@ -328,7 +330,17 @@ function ItemTypeLink({
       </span>
       {!collapsed && (
         <>
-          <span className="min-w-0 flex-1 truncate">{itemType.label}</span>
+          <span className="flex min-w-0 flex-1 items-center gap-2">
+            <span className="min-w-0 truncate">{itemType.label}</span>
+            {isProType && (
+              <Badge
+                variant="outline"
+                className="border-border/70 bg-background/40 px-1.5 py-0 text-[0.625rem] leading-4 font-semibold tracking-normal text-muted-foreground"
+              >
+                PRO
+              </Badge>
+            )}
+          </span>
           <span className="text-xs text-muted-foreground">{itemType.itemCount}</span>
         </>
       )}

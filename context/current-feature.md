@@ -1,30 +1,22 @@
-# Current Feature
-
-Stats & Sidebar: replace dashboard stats and sidebar mock data with database-backed data.
+# Current Feature: Add Pro Badge to Sidebar
 
 ## Status
 
-Completed
+In Progress
 
 ## Goals
 
-- Display dashboard stats from database data while keeping the current design and layout.
-- Display system item types in the sidebar with their icons and links to `/items/[typename]`.
-- Display actual collection data from the database in the sidebar.
-- Add a "View all collections" link under the sidebar collections list that routes to `/collections`.
-- Keep star icons for favorite collections.
-- Show a colored circle for recent collections based on the most-used item type in each collection.
-- Add needed database functions in `src/lib/db/items.ts`, using `src/lib/db/collections.ts` as a reference where useful.
+- Add a subtle uppercase `PRO` badge next to the Files item type in the sidebar.
+- Add a subtle uppercase `PRO` badge next to the Images item type in the sidebar.
+- Use the ShadCN UI badge component for the sidebar badges.
+- Keep the badge styling clean, subtle, and consistent with the existing sidebar design.
 
 ## Notes
 
-- Feature spec: `context/features/stats-sidebar-spec.md`
-- Dashboard page: `src/app/dashboard/page.tsx`
-- Dashboard frame: `src/components/dashboard/DashboardFrame.tsx`
-- Dashboard shell: `src/components/dashboard/DashboardShell.tsx`
-- Current mock data source: `src/lib/mock-data.ts`
-- Existing collections data layer: `src/lib/db/collections.ts`
-- Item data layer: `src/lib/db/items.ts`
+- Feature spec: `context/features/add-pro-badge-sidebar.md`
+- Likely affected file: `src/components/dashboard/DashboardShell.tsx`
+- Constraint: Badge text must be `PRO` in all uppercase.
+- Constraint: Use ShadCN UI badge component.
 
 ## History
 
