@@ -48,17 +48,20 @@ const itemTypeNames = [
 ] as const satisfies readonly DashboardItemTypeName[];
 
 const itemTypeNameSet = new Set<string>(itemTypeNames);
+const DASHBOARD_PINNED_ITEMS_LIMIT = 6;
+const DASHBOARD_RECENT_ITEMS_LIMIT = 10;
 
 export async function getDashboardItemsData(): Promise<DashboardItemsData> {
   const [pinnedItems, recentItems] = await Promise.all([
     prisma.item.findMany({
       where: { isPinned: true },
       orderBy: { updatedAt: "desc" },
+      take: DASHBOARD_PINNED_ITEMS_LIMIT,
       select: dashboardItemSelect,
     }),
     prisma.item.findMany({
       orderBy: { updatedAt: "desc" },
-      take: 10,
+      take: DASHBOARD_RECENT_ITEMS_LIMIT,
       select: dashboardItemSelect,
     }),
   ]);

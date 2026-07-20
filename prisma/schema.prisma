@@ -14,17 +14,17 @@ enum ContentType {
 }
 
 model User {
-  id                   String   @id @default(cuid())
-  email                String   @unique
+  id                   String    @id @default(cuid())
+  email                String    @unique
   emailVerified        DateTime?
   name                 String?
   image                String?
   password             String?
-  isPro                Boolean  @default(false)
-  stripeCustomerId     String?  @unique
-  stripeSubscriptionId String?  @unique
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
+  isPro                Boolean   @default(false)
+  stripeCustomerId     String?   @unique
+  stripeSubscriptionId String?   @unique
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
 
   items       Item[]
   collections Collection[]
@@ -104,6 +104,9 @@ model Item {
   @@index([userId])
   @@index([itemTypeId])
   @@index([createdAt])
+  @@index([updatedAt])
+  @@index([isPinned, updatedAt])
+  @@index([isFavorite, updatedAt])
   @@map("items")
 }
 
@@ -142,6 +145,7 @@ model Collection {
 
   @@index([userId])
   @@index([defaultTypeId])
+  @@index([updatedAt])
   @@map("collections")
 }
 
