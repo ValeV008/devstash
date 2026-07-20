@@ -1,6 +1,4 @@
 "use client";
-
-import Link from "next/link";
 import {
   Clock,
   Code,
@@ -51,16 +49,6 @@ const itemTypeAccentClasses: Record<DashboardItemTypeName, string> = {
   file: "bg-zinc-500",
   image: "bg-pink-500",
   link: "bg-emerald-500",
-};
-
-const itemTypeHoverClasses: Record<DashboardItemTypeName, string> = {
-  snippet: "hover:border-blue-500/50 hover:bg-blue-500/10",
-  prompt: "hover:border-violet-500/50 hover:bg-violet-500/10",
-  command: "hover:border-orange-500/50 hover:bg-orange-500/10",
-  note: "hover:border-yellow-400/50 hover:bg-yellow-400/10",
-  file: "hover:border-zinc-500/50 hover:bg-zinc-500/10",
-  image: "hover:border-pink-500/50 hover:bg-pink-500/10",
-  link: "hover:border-emerald-500/50 hover:bg-emerald-500/10",
 };
 
 export interface DashboardSidebarData {
@@ -191,11 +179,7 @@ function MobileSidebar({
               <X />
             </Button>
           </div>
-          <SidebarContent
-            collapsed={false}
-            sidebarData={sidebarData}
-            onLinkClick={onClose}
-          />
+          <SidebarContent collapsed={false} sidebarData={sidebarData} />
         </div>
       </aside>
     </div>
@@ -205,11 +189,9 @@ function MobileSidebar({
 function SidebarContent({
   collapsed,
   sidebarData,
-  onLinkClick,
 }: {
   collapsed: boolean;
   sidebarData: DashboardSidebarData;
-  onLinkClick?: () => void;
 }) {
   return (
     <div
@@ -225,12 +207,7 @@ function SidebarContent({
         className="gap-1.5"
       >
         {sidebarData.itemTypes.map((itemType) => (
-          <ItemTypeLink
-            key={itemType.id}
-            itemType={itemType}
-            collapsed={collapsed}
-            onClick={onLinkClick}
-          />
+          <ItemTypeLink key={itemType.id} itemType={itemType} collapsed={collapsed} />
         ))}
       </SidebarSection>
 
@@ -241,7 +218,6 @@ function SidebarContent({
             collection={collection}
             marker="favorite"
             collapsed={collapsed}
-            onClick={onLinkClick}
           />
         ))}
       </SidebarSection>
@@ -253,10 +229,8 @@ function SidebarContent({
             collection={collection}
             marker="dominantType"
             collapsed={collapsed}
-            onClick={onLinkClick}
           />
         ))}
-        <ViewAllCollectionsLink collapsed={collapsed} onClick={onLinkClick} />
       </SidebarSection>
 
       <UserArea collapsed={collapsed} user={sidebarData.user} />
@@ -299,24 +273,18 @@ function SidebarSection({
 function ItemTypeLink({
   itemType,
   collapsed,
-  onClick,
 }: {
   itemType: DashboardSidebarItemType;
   collapsed: boolean;
-  onClick?: () => void;
 }) {
   const Icon = itemTypeIcons[itemType.icon] ?? File;
   const isProType = itemType.name === "file" || itemType.name === "image";
 
   return (
-    <Link
-      href={itemType.route}
+    <div
       title={collapsed ? itemType.label : undefined}
-      onClick={onClick}
       className={cn(
-        "flex h-10 items-center gap-3 rounded-md border border-transparent px-2 text-sm text-muted-foreground transition-colors",
-        "hover:text-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] focus-visible:outline-none",
-        itemTypeHoverClasses[itemType.name],
+        "flex h-10 items-center gap-3 rounded-md border border-transparent px-2 text-sm text-muted-foreground",
         collapsed && "justify-center px-0",
       )}
     >
@@ -344,7 +312,7 @@ function ItemTypeLink({
           <span className="text-xs text-muted-foreground">{itemType.itemCount}</span>
         </>
       )}
-    </Link>
+    </div>
   );
 }
 
@@ -352,21 +320,16 @@ function CollectionLink({
   collection,
   marker,
   collapsed,
-  onClick,
 }: {
   collection: DashboardSidebarCollection;
   marker: "favorite" | "dominantType";
   collapsed: boolean;
-  onClick?: () => void;
 }) {
   return (
-    <Link
-      href={`/collections/${collection.id}`}
+    <div
       title={collapsed ? collection.name : undefined}
-      onClick={onClick}
       className={cn(
-        "flex h-9 items-center gap-3 rounded-md px-2 text-sm text-muted-foreground transition-colors",
-        "hover:bg-accent hover:text-accent-foreground focus-visible:ring-ring/50 focus-visible:ring-[3px] focus-visible:outline-none",
+        "flex h-9 items-center gap-3 rounded-md px-2 text-sm text-muted-foreground",
         collapsed && "justify-center px-0",
       )}
     >
@@ -387,33 +350,7 @@ function CollectionLink({
           <span className="text-xs text-muted-foreground">{collection.itemCount}</span>
         </>
       )}
-    </Link>
-  );
-}
-
-function ViewAllCollectionsLink({
-  collapsed,
-  onClick,
-}: {
-  collapsed: boolean;
-  onClick?: () => void;
-}) {
-  return (
-    <Link
-      href="/collections"
-      title={collapsed ? "View all collections" : undefined}
-      onClick={onClick}
-      className={cn(
-        "mt-1 flex h-9 items-center gap-3 rounded-md px-2 text-sm font-medium text-muted-foreground transition-colors",
-        "hover:bg-accent hover:text-accent-foreground focus-visible:ring-ring/50 focus-visible:ring-[3px] focus-visible:outline-none",
-        collapsed && "justify-center px-0",
-      )}
-    >
-      <Folder className="size-4 shrink-0" />
-      {!collapsed && (
-        <span className="min-w-0 flex-1 truncate">View all collections</span>
-      )}
-    </Link>
+    </div>
   );
 }
 

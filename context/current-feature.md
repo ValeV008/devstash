@@ -1,14 +1,20 @@
-# Current Feature
+# Current Feature: Remove Stale Dashboard Subpages
 
 ## Status
 
-Not Started
+In Progress
 
 ## Goals
 
+- Remove dashboard navigation paths that point to mock-backed collection and item type subpages.
+- Remove the stale collection and item type subpage files instead of converting them to Prisma-backed pages.
+- Keep dashboard links limited to implemented, database-backed surfaces.
+- Validate that lint/type checks still pass after the removal.
 
 ## Notes
 
+- Quick win from the code scan: address dashboard route/data inconsistency with minimal risk by removing stale subpages and links rather than introducing new data fetching behavior.
+- Affected areas likely include dashboard sidebar/card links and the mock-backed routes under `src/app/collections/[id]` and `src/app/items/[type]`.
 
 ## History
 

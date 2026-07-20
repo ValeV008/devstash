@@ -1,4 +1,3 @@
-import Link from "next/link";
 import {
   Code,
   Database,
@@ -21,7 +20,6 @@ import {
   DashboardFrame,
   type DashboardSidebarData,
 } from "@/components/dashboard/DashboardFrame";
-import { Button } from "@/components/ui/button";
 import {
   type DashboardCollection,
   type DashboardCollectionsData,
@@ -128,7 +126,7 @@ function DashboardMain({
           ))}
         </div>
 
-        <DashboardSection title="Recent collections" actionLabel="View all">
+        <DashboardSection title="Recent collections">
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {collections.map((collection) => (
               <CollectionCard key={collection.id} collection={collection} />
@@ -187,12 +185,10 @@ function StatCard({
 function DashboardSection({
   title,
   icon: Icon,
-  actionLabel,
   children,
 }: {
   title: string;
   icon?: LucideIcon;
-  actionLabel?: string;
   children: ReactNode;
 }) {
   return (
@@ -202,11 +198,6 @@ function DashboardSection({
           {Icon && <Icon className="size-5 shrink-0 text-muted-foreground" />}
           <h3 className="truncate text-xl font-semibold tracking-normal">{title}</h3>
         </div>
-        {actionLabel && (
-          <Button type="button" variant="ghost" size="sm">
-            {actionLabel}
-          </Button>
-        )}
       </div>
       {children}
     </section>
@@ -215,11 +206,9 @@ function DashboardSection({
 
 function CollectionCard({ collection }: { collection: DashboardCollection }) {
   return (
-    <Link
-      href={`/collections/${collection.id}`}
+    <article
       className={cn(
-        "group flex min-h-44 flex-col rounded-lg border border-l-4 bg-card/70 p-5 transition-colors",
-        "hover:border-r-border hover:border-y-border hover:bg-accent/40 focus-visible:ring-ring/50 focus-visible:ring-[3px] focus-visible:outline-none",
+        "flex min-h-44 flex-col rounded-lg border border-l-4 bg-card/70 p-5",
         itemTypeBorderClasses[collection.dominantTypeName],
       )}
     >
@@ -235,7 +224,7 @@ function CollectionCard({ collection }: { collection: DashboardCollection }) {
             {collection.itemCount} items
           </p>
         </div>
-        <MoreHorizontal className="size-5 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
+        <MoreHorizontal className="size-5 shrink-0 text-muted-foreground" />
       </div>
       <p className="mt-5 line-clamp-2 text-sm text-muted-foreground">
         {collection.description}
@@ -254,7 +243,7 @@ function CollectionCard({ collection }: { collection: DashboardCollection }) {
           );
         })}
       </div>
-    </Link>
+    </article>
   );
 }
 
@@ -269,11 +258,9 @@ function ItemRow({
   const Icon = itemTypeIcons[itemType.icon] ?? File;
 
   return (
-    <Link
-      href={itemType.route}
+    <article
       className={cn(
-        "grid gap-4 rounded-lg border border-l-4 bg-card/70 p-4 transition-colors sm:grid-cols-[1fr_auto]",
-        "hover:border-r-border hover:border-y-border hover:bg-accent/40 focus-visible:ring-ring/50 focus-visible:ring-[3px] focus-visible:outline-none",
+        "grid gap-4 rounded-lg border border-l-4 bg-card/70 p-4 sm:grid-cols-[1fr_auto]",
         itemTypeBorderClasses[item.typeName],
         featured && "min-h-28",
       )}
@@ -310,7 +297,7 @@ function ItemRow({
       <time className="text-sm whitespace-nowrap text-muted-foreground sm:pt-4">
         {formatShortDate(item.updatedAt)}
       </time>
-    </Link>
+    </article>
   );
 }
 
