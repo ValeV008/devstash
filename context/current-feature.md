@@ -31,3 +31,4 @@ Not Started
 - 2026-07-20: Completed Add Pro Badge to Sidebar with a reusable ShadCN-style badge component and subtle uppercase PRO badges for Files and Images sidebar item types.
 - 2026-07-20: Completed Remove Stale Dashboard Subpages by deleting mock-backed collection and item type pages and removing dashboard links to unimplemented routes.
 - 2026-07-20: Completed Tighten Dashboard Query Performance with bounded dashboard item lists, `_count`-based collection counts, grouped collection type summaries, and focused Prisma indexes for dashboard sort/filter reads.
+- 2026-07-23: Completed Auth Setup - NextAuth + GitHub Provider with Auth.js v5 beta, Prisma adapter wiring, GitHub OAuth, default sign-in flow, dashboard proxy protection, and session user ID typing.
