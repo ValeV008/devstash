@@ -1,12 +1,24 @@
-# Current Feature
+# Current Feature: Auth Credentials - Email/Password Provider
 
 ## Status
 
-Not Started
+In Progress
 
 ## Goals
 
+- Add a password field to the Prisma User model and migration if the field is not already present.
+- Add a Credentials provider placeholder to `auth.config.ts` following the split Auth.js config pattern.
+- Override the Credentials provider in `auth.ts` with bcrypt-backed email/password validation.
+- Create `POST /api/auth/register` to validate registration input, reject duplicate users, hash passwords with bcryptjs, and create users.
+- Keep GitHub OAuth working alongside email/password sign-in and preserve the `/dashboard` redirect behavior.
+
 ## Notes
+
+- Source spec: `context/features/auth-phase-2-spec.md`
+- Use bcryptjs for hashing; the package is already installed per spec.
+- Registration route accepts `name`, `email`, `password`, and `confirmPassword`.
+- Registration must validate matching passwords before checking duplicates and writing to the database.
+- Auth.js split pattern: `auth.config.ts` keeps `authorize: () => null`; `auth.ts` owns actual bcrypt validation.
 
 ## History
 
