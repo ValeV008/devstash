@@ -1,12 +1,23 @@
-# Current Feature
+# Current Feature: Auth UI - Sign In, Register & Sign Out
 
 ## Status
 
-Not Started
+In Progress
 
 ## Goals
 
+- Add a custom `/sign-in` page with email/password fields, GitHub sign-in, register navigation, validation, and error display.
+- Add a custom `/register` page with name, email, password, and confirm password fields; validate matching passwords and email format.
+- Submit registration through `/api/auth/register` and redirect to sign-in after successful account creation.
+- Update the sidebar user area to show the signed-in user's avatar or initials fallback and user name.
+- Add avatar interactions so clicking the avatar opens a menu/drop-up with a sign-out action, while the user icon links to `/profile`.
+- Create a reusable avatar component that displays a GitHub image when available or generated initials otherwise.
+
 ## Notes
+
+- Spec: `context/features/auth-phase-3-spec.md`
+- Avatar logic: prefer `session.user.image`; otherwise generate initials from the user's name, for example `Brad Traversy` -> `BT`.
+- Manual validation should cover `/sign-in`, GitHub sign-in, email/password sign-in, avatar rendering, avatar menu, sign-out redirect, and `/register` account creation.
 
 ## History
 

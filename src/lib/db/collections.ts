@@ -55,6 +55,13 @@ export interface DashboardSidebarCollectionsData {
 export interface DashboardSidebarUser {
   name: string;
   email: string;
+  image: string | null;
+}
+
+interface DashboardSessionUser {
+  name?: string | null;
+  email?: string | null;
+  image?: string | null;
 }
 
 const itemTypeNames = [
@@ -87,7 +94,9 @@ interface CollectionTypeSummary {
   itemTypes: DashboardCollectionType[];
 }
 
-export async function getDashboardCollectionsData(): Promise<DashboardCollectionsData> {
+export async function getDashboardCollectionsData(
+  userId: string,
+): Promise<DashboardCollectionsData> {
   const [
     collections,
     itemCount,
@@ -96,6 +105,7 @@ export async function getDashboardCollectionsData(): Promise<DashboardCollection
     favoriteCollectionCount,
   ] = await Promise.all([
     prisma.collection.findMany({
+      where: { userId },
       orderBy: { updatedAt: "desc" },
       take: DASHBOARD_COLLECTIONS_LIMIT,
       select: {
@@ -105,18 +115,19 @@ export async function getDashboardCollectionsData(): Promise<DashboardCollection
         isFavorite: true,
         _count: {
           select: {
-            items: true,
+            items: { where: { item: { userId } } },
           },
         },
       },
     }),
-    prisma.item.count(),
-    prisma.collection.count(),
-    prisma.item.count({ where: { isFavorite: true } }),
-    prisma.collection.count({ where: { isFavorite: true } }),
+    prisma.item.count({ where: { userId } }),
+    prisma.collection.count({ where: { userId } }),
+    prisma.item.count({ where: { userId, isFavorite: true } }),
+    prisma.collection.count({ where: { userId, isFavorite: true } }),
   ]);
   const collectionTypeSummaries = await getCollectionTypeSummaries(
     collections.map((collection) => collection.id),
+    userId,
   );
 
   return {
@@ -142,18 +153,21 @@ export async function getDashboardCollectionsData(): Promise<DashboardCollection
   };
 }
 
-export async function getDashboardSidebarCollectionsData(): Promise<DashboardSidebarCollectionsData> {
+export async function getDashboardSidebarCollectionsData(
+  userId: string,
+): Promise<DashboardSidebarCollectionsData> {
   const [favoriteCollections, recentCollections] = await Promise.all([
     prisma.collection.findMany({
-      where: { isFavorite: true },
+      where: { userId, isFavorite: true },
       orderBy: { updatedAt: "desc" },
       take: DASHBOARD_FAVORITE_COLLECTIONS_LIMIT,
-      select: dashboardSidebarCollectionSelect,
+      select: dashboardSidebarCollectionSelect(userId),
     }),
     prisma.collection.findMany({
+      where: { userId },
       orderBy: { updatedAt: "desc" },
       take: DASHBOARD_RECENT_COLLECTIONS_LIMIT,
-      select: dashboardSidebarCollectionSelect,
+      select: dashboardSidebarCollectionSelect(userId),
     }),
   ]);
   const collectionTypeSummaries = await getCollectionTypeSummaries([
@@ -161,7 +175,7 @@ export async function getDashboardSidebarCollectionsData(): Promise<DashboardSid
       ...favoriteCollections.map((collection) => collection.id),
       ...recentCollections.map((collection) => collection.id),
     ]),
-  ]);
+  ], userId);
 
   return {
     favoriteCollections: favoriteCollections.map((collection) =>
@@ -179,30 +193,25 @@ export async function getDashboardSidebarCollectionsData(): Promise<DashboardSid
   };
 }
 
-export async function getDashboardSidebarUser(): Promise<DashboardSidebarUser> {
-  const user = await prisma.user.findFirst({
-    orderBy: { createdAt: "asc" },
-    select: {
-      name: true,
-      email: true,
-    },
-  });
-
+export function getDashboardSidebarUser(
+  user?: DashboardSessionUser,
+): DashboardSidebarUser {
   return {
     name: user?.name ?? "DevStash User",
     email: user?.email ?? "user@devstash.local",
+    image: user?.image ?? null,
   };
 }
 
-const dashboardSidebarCollectionSelect = {
+const dashboardSidebarCollectionSelect = (userId: string) => ({
   id: true,
   name: true,
   _count: {
     select: {
-      items: true,
+      items: { where: { item: { userId } } },
     },
   },
-} as const;
+});
 
 function toDashboardSidebarCollection(
   collection: {
@@ -222,7 +231,7 @@ function toDashboardSidebarCollection(
   };
 }
 
-async function getCollectionTypeSummaries(collectionIds: string[]) {
+async function getCollectionTypeSummaries(collectionIds: string[], userId: string) {
   if (collectionIds.length === 0) {
     return new Map<string, CollectionTypeSummary>();
   }
@@ -239,6 +248,7 @@ async function getCollectionTypeSummaries(collectionIds: string[]) {
     INNER JOIN "items" i ON i."id" = ic."itemId"
     INNER JOIN "item_types" it ON it."id" = i."itemTypeId"
     WHERE ic."collectionId" IN (${Prisma.join(collectionIds)})
+      AND i."userId" = ${userId}
     GROUP BY ic."collectionId", it."id", it."name", it."icon", it."color"
     ORDER BY ic."collectionId" ASC, "itemCount" DESC, it."name" ASC
   `);
