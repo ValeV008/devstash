@@ -1,0 +1,4 @@
+interface:
+  display_name: "DevStash Component Inventory"
+  short_description: "List and summarize DevStash React component files"
+  default_prompt: "Use $list-components to inventory components under src/components."

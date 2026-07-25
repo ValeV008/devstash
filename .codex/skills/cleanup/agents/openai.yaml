@@ -1,0 +1,4 @@
+interface:
+  display_name: "DevStash Cleanup"
+  short_description: "Review and selectively fix DevStash housekeeping"
+  default_prompt: "Use $cleanup to inspect DevStash housekeeping in check mode."
