@@ -11,18 +11,23 @@ import {
   PanelLeftOpen,
   Plus,
   Search,
+  Settings,
   Sparkles,
   Star,
   StickyNote,
   Terminal,
+  UserRound,
   X,
   type LucideIcon,
 } from "lucide-react";
+import Link from "next/link";
+import { signOut } from "next-auth/react";
 import { type ReactNode, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { UserAvatar } from "@/components/ui/user-avatar";
 import {
   type DashboardItemTypeName,
   type DashboardSidebarCollection,
@@ -361,24 +366,60 @@ function UserArea({
   collapsed: boolean;
   user: DashboardSidebarUser;
 }) {
-  const initials = user.name
-    .split(" ")
-    .map((part) => part[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
-    <div className="mt-auto border-t pt-3">
+    <div className="relative mt-auto border-t pt-3">
+      {isMenuOpen && (
+        <div
+          className={cn(
+            "absolute bottom-full z-10 mb-2 min-w-48 rounded-lg border bg-popover p-1 shadow-xl shadow-black/30",
+            collapsed ? "left-1/2 -translate-x-1/2" : "left-0 right-0",
+          )}
+        >
+          <Button
+            asChild
+            variant="ghost"
+            className="h-9 w-full justify-start px-2 text-sm"
+          >
+            <Link href="/profile" onClick={() => setIsMenuOpen(false)}>
+              <Settings />
+              Profile
+            </Link>
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            className="h-9 w-full justify-start px-2 text-sm text-muted-foreground"
+            onClick={() => void signOut({ callbackUrl: "/sign-in" })}
+          >
+            <X />
+            Sign out
+          </Button>
+        </div>
+      )}
       <div
         className={cn(
           "flex items-center gap-3 rounded-md px-2 py-2",
           collapsed && "justify-center px-0",
         )}
       >
-        <div className="flex size-9 shrink-0 items-center justify-center rounded-md bg-secondary text-sm font-semibold text-secondary-foreground">
-          {initials}
-        </div>
+        <button
+          type="button"
+          className="rounded-md outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+          aria-label="Open user menu"
+          aria-expanded={isMenuOpen}
+          onClick={() => setIsMenuOpen((current) => !current)}
+        >
+          <UserAvatar name={user.name} image={user.image} />
+        </button>
+        <Link
+          href="/profile"
+          className="flex size-9 shrink-0 items-center justify-center rounded-md text-muted-foreground outline-none transition-colors hover:bg-secondary hover:text-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+          aria-label="View profile"
+        >
+          <UserRound className="size-4" />
+        </Link>
         {!collapsed && (
           <div className="min-w-0">
             <p className="truncate text-sm font-medium">{user.name}</p>

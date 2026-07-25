@@ -36,6 +36,9 @@ yarn-error.log*
 .env*
 !.env.example
 
+# local Codex configuration
+/.codex/config.toml
+
 # generated prisma client
 /src/generated/prisma/
 

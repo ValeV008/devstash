@@ -1,5 +1,6 @@
 import { connection } from "next/server";
 
+import { auth } from "@/auth";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import {
   getDashboardCollectionsData,
@@ -10,15 +11,21 @@ import { getDashboardItemsData, getDashboardSidebarItemTypes } from "@/lib/db/it
 
 export default async function DashboardPage() {
   await connection();
+  const session = await auth();
+  const userId = session?.user?.id;
 
-  const [collectionsData, itemsData, sidebarCollectionsData, sidebarItemTypes, user] =
+  if (!userId) {
+    return null;
+  }
+
+  const [collectionsData, itemsData, sidebarCollectionsData, sidebarItemTypes] =
     await Promise.all([
-      getDashboardCollectionsData(),
-      getDashboardItemsData(),
-      getDashboardSidebarCollectionsData(),
-      getDashboardSidebarItemTypes(),
-      getDashboardSidebarUser(),
+      getDashboardCollectionsData(userId),
+      getDashboardItemsData(userId),
+      getDashboardSidebarCollectionsData(userId),
+      getDashboardSidebarItemTypes(userId),
     ]);
+  const user = getDashboardSidebarUser(session?.user);
 
   return (
     <DashboardShell

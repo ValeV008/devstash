@@ -1,0 +1,4 @@
+interface:
+  display_name: "DevStash Feature Workflow"
+  short_description: "Run the DevStash feature delivery workflow"
+  default_prompt: "Use $feature to review the active DevStash feature."

@@ -6,7 +6,9 @@ Not Started
 
 ## Goals
 
+
 ## Notes
+
 
 ## History
 
@@ -33,3 +35,5 @@ Not Started
 - 2026-07-20: Completed Tighten Dashboard Query Performance with bounded dashboard item lists, `_count`-based collection counts, grouped collection type summaries, and focused Prisma indexes for dashboard sort/filter reads.
 - 2026-07-23: Completed Auth Setup - NextAuth + GitHub Provider with Auth.js v5 beta, Prisma adapter wiring, GitHub OAuth, default sign-in flow, dashboard proxy protection, and session user ID typing.
 - 2026-07-23: Completed Auth Credentials - Email/Password Provider with split Auth.js Credentials wiring, bcrypt-backed credential validation, `/api/auth/register`, existing Prisma password storage, and preserved GitHub OAuth/dashboard redirect behavior.
+
+- 2026-07-25: Completed Auth UI - Sign In, Register & Sign Out with custom credential/GitHub sign-in and registration pages, a registration success toast, reusable session avatar/profile/sign-out controls, protected profile routing, and user-scoped dashboard reads.

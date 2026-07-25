@@ -10,6 +10,7 @@ interface RegisterRequestBody {
 }
 
 const MIN_PASSWORD_LENGTH = 8;
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export async function POST(request: Request) {
   let body: RegisterRequestBody;
@@ -31,6 +32,10 @@ export async function POST(request: Request) {
       { error: "Name, email, password, and confirmation are required." },
       { status: 400 },
     );
+  }
+
+  if (!EMAIL_PATTERN.test(email)) {
+    return Response.json({ error: "Enter a valid email address." }, { status: 400 });
   }
 
   if (password !== confirmPassword) {
